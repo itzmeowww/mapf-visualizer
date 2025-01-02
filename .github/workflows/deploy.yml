@@ -30,6 +30,8 @@ jobs:
           path: ./dist
 
   cleanup:
+    name: Cleanup
+    needs: build
     runs-on: ubuntu-latest
     permissions: write-all
 
@@ -43,7 +45,7 @@ jobs:
 
   deploy:
     name: Deploy
-    needs: build
+    needs: cleanup
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
 
