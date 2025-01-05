@@ -5,18 +5,33 @@ import Visualizer from './Visualizer';
 import { Graph } from './Graph';
 import { Solution } from './Solution';
 import React from 'react';
-import { StrictMode } from 'react';
+import { StrictMode, useRef } from 'react';
 
 function App() {
+  const pixiAppRef = useRef<{ skipBackward?: () => void; skipForward?: () => void; restart?: () => void; }>(null);
+
   const [graph, setGraph] = React.useState<Graph | null>(null);
   const [solution, setSolution] = React.useState<Solution | null>(null);
+  const [playAnimation, setPlayAnimation] = React.useState<boolean>(true);
+  const [speed, setSpeed] = React.useState<number>(1.0);
+  const [loopAnimation, setLoopAnimation] = React.useState<boolean>(true);
 
-  const onGridChange = (graph: Graph) => {
-    setGraph(graph);
+  const handleSkipBackward = () => {
+    if (pixiAppRef.current?.skipBackward) {
+      pixiAppRef.current.skipBackward();
+    }
   }
 
-  const onSolutionChange = (solution: Solution) => {
-    setSolution(solution);
+  const handleSkipForward = () => {
+    if (pixiAppRef.current?.skipForward) {
+      pixiAppRef.current.skipForward();
+    }
+  }
+
+  const handleRestart = () => {
+    if (pixiAppRef.current?.restart) {
+      pixiAppRef.current.restart();
+    }
   }
 
   return (
@@ -24,10 +39,28 @@ function App() {
     <Box sx={{ flexGrow: 1 }}>
       <Grid container spacing={2}>
         <Grid size="grow">
-          <Visualizer graph={graph} solution={solution} />
+          <Visualizer
+            pixiAppRef = {pixiAppRef}
+            graph={graph} 
+            solution={solution} 
+            playAnimation={playAnimation}
+            speed={speed}
+            loopAnimation={loopAnimation}
+          />
         </Grid>
         <Grid size={4}>
-          <ConfigBar onGraphChange={onGridChange} onSolutionChange={onSolutionChange}/>
+          <ConfigBar
+            onGraphChange={(graph: Graph) => setGraph(graph)}
+            onSolutionChange={(solution: Solution) => setSolution(solution)}
+            playAnimation={playAnimation}
+            onPlayAnimationChange={(playAnimation: boolean) => setPlayAnimation(playAnimation)}
+            onSkipBackward={handleSkipBackward}
+            onSkipForward={handleSkipForward}
+            onRestart={handleRestart}
+            onSpeedChange={(speed: number) => setSpeed(speed)}
+            loopAnimation={loopAnimation}
+            onLoopAnimationChange={(loopAnimation: boolean) => setLoopAnimation(loopAnimation)}
+          />
         </Grid>
       </Grid>
     </Box>
