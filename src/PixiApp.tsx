@@ -4,7 +4,7 @@ import { Viewport } from 'pixi-viewport';
 import { Graph } from './Graph';
 import { Solution, Orientation, orientationToRotation } from './Solution';
 import { Coordinate } from './Graph';
-import { AGENT_COLORS } from './Params';
+import { BACKGROUND_COLOR, GRID_COLOR, TEXT_COLOR, AGENT_COLORS } from './Params';
 
 const GRID_UNIT_TO_PX: number = 100;
 
@@ -16,6 +16,7 @@ interface PixiAppProps {
     playAnimation: boolean;
     speed: number;
     loopAnimation: boolean;
+    showAgentId: boolean;
 }
 
 function drawGrid(viewport: Viewport, graph: Graph) : PIXI.Container {
@@ -25,9 +26,9 @@ function drawGrid(viewport: Viewport, graph: Graph) : PIXI.Container {
         for (let y: number = 0; y < graph.height; y++) {
             let cell = grid.addChild(new PIXI.Graphics());
             cell.rect(x*GRID_UNIT_TO_PX, y*GRID_UNIT_TO_PX, GRID_UNIT_TO_PX, GRID_UNIT_TO_PX)
-            .stroke({color: 0x000000, width: 10});
+            .stroke({color: GRID_COLOR, width: 10});
             if (graph.obstacles.has(new Coordinate(x, y).toString())) {
-                cell.fill({color: 0x000000});
+                cell.fill({color: GRID_COLOR});
             }
         }
     }
@@ -45,6 +46,7 @@ const PixiApp = forwardRef(({
     playAnimation,
     speed,
     loopAnimation,
+    showAgentId,
 }: PixiAppProps, ref) => {
     const [app, setApp] = useState<PIXI.Application | null>(null);
     const [viewport, setViewport] = useState<Viewport | null>(null);
@@ -56,6 +58,7 @@ const PixiApp = forwardRef(({
     const loopAnimationRef = useRef(true);
     const hudRef = useRef<PIXI.Container | null>(null);
     const timestepTextRef = useRef<PIXI.Text | null>(null);
+    const showAgentIdRef = useRef(false);
 
     // Scale a position from grid units to pixels
     const scalePosition = (position: number) : number => {
@@ -106,6 +109,12 @@ const PixiApp = forwardRef(({
 
         // Interpolate between current and next states
         sprites.forEach((sprite, index) => {
+            // Show or hide agent ID
+            let idText = sprite.children[1];
+            if (idText !== undefined) {
+                idText.visible = showAgentIdRef.current;
+            }
+
             const startPose = currentState[index];
             const endPose = nextState[index];
 
@@ -120,13 +129,14 @@ const PixiApp = forwardRef(({
             sprite.y = scalePosition(sprite.y);
 
             // orientation-aware visualization has two objects for each sprite
-            if (sprite.children.length == 1) return;
+            let circleContainer: PIXI.Container = sprite.children[0];
+            if (circleContainer === undefined || circleContainer.children.length < 2) return;
 
             // Interpolate rotation
             const startRotation = orientationToRotation(startPose.orientation);
             const endRotation = orientationToRotation(endPose.orientation);
 
-            sprite.rotation =
+            circleContainer.rotation =
                 startRotation +
                 (endRotation - startRotation) * interpolationProgress;
         }); 
@@ -139,25 +149,39 @@ const PixiApp = forwardRef(({
         const sprites: PIXI.Container[] = [];
     
         // Check if the solution is orientation-aware
-        const orientation_aware: boolean = solution[0][0].orientation !== Orientation.NONE;
+        const orientationAware: boolean = solution[0][0].orientation !== Orientation.NONE;
 
         // Create sprites for each entity in the first configuration
         let agents = viewport.addChild(new PIXI.Container());
-        let agent_id = 0;
+        let agentId = 0;
         solution[0].forEach(() => {
             const sprite = agents.addChild(new PIXI.Container());
-            let circle = sprite.addChild(new PIXI.Graphics());
-            let agent_color = AGENT_COLORS[agent_id++ % AGENT_COLORS.length];
+            let circleContainer = sprite.addChild(new PIXI.Container());
+            let circle = circleContainer.addChild(new PIXI.Graphics());
+            let agentColor = AGENT_COLORS[agentId++ % AGENT_COLORS.length];
             circle
                 .circle(0, 0, GRID_UNIT_TO_PX/3)
-                .fill(agent_color);
-            if (orientation_aware) {
+                .fill(agentColor);
+            if (orientationAware) {
                 const radius = circle.width / 2;
-                let triangle = sprite.addChild(new PIXI.Graphics());
+                let triangle = circleContainer.addChild(new PIXI.Graphics());
                 triangle
                     .poly([0, radius, 0, -radius, radius, 0])
-                    .fill(0xffffff);
+                    .fill(BACKGROUND_COLOR);
             }
+            let idText = sprite.addChild(new PIXI.Text({
+                text: `${agentId}`,
+                style: {
+                    fontfamily: 'Arial',
+                    fontSize: circle.width / 2,
+                    fill: TEXT_COLOR,
+                }
+            }));
+            let fontSuperResolutionScale = 2;
+            idText.style.fontSize *= fontSuperResolutionScale;
+            idText.scale.set(1 / fontSuperResolutionScale, 1 / fontSuperResolutionScale);
+            idText.x = -idText.width / 2;
+            idText.y = -idText.height / 2;
             sprites.push(sprite);
         });
     
@@ -195,7 +219,7 @@ const PixiApp = forwardRef(({
                     width: width, 
                     height: height, 
                     canvas: canvas, 
-                    background: 0xffffff,
+                    background: BACKGROUND_COLOR,
                 }).then(() => {
                     setApp(pixiApp);
                 });
@@ -218,8 +242,11 @@ const PixiApp = forwardRef(({
                     hudRef.current = app.stage.addChild(new PIXI.Container());
                     const textStyle = new PIXI.TextStyle({
                         fontSize: 24,
-                        fill: 0x000000,
-                        stroke: {color: 0xffffff, width: 4},
+                        fill: TEXT_COLOR,
+                        stroke: {
+                            color: BACKGROUND_COLOR, 
+                            width: 4
+                        },
                     });
                     timestepTextRef.current = hudRef.current.addChild(
                         new PIXI.Text({style: textStyle})
@@ -261,6 +288,11 @@ const PixiApp = forwardRef(({
         speedRef.current = speed;
         loopAnimationRef.current = loopAnimation
     }, [playAnimation, speed, loopAnimation]);
+
+    // Update the showAgentIdRef when the showAgentId changes
+    useEffect(() => {
+        showAgentIdRef.current = showAgentId;
+    }, [showAgentId]);
 
     return <canvas ref={canvasRef} />
 });
