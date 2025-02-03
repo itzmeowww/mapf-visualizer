@@ -202,8 +202,6 @@ const PixiApp = forwardRef(({
             if (currentTimestep >= solution.length - 1) {
                 if (loopAnimationRef.current) {
                     resetTimestep();
-                } else {
-                    viewport.removeChild(agents);
                 }
                 return;
             }
@@ -227,6 +225,7 @@ const PixiApp = forwardRef(({
                     height: height, 
                     canvas: canvas, 
                     background: BACKGROUND_COLOR,
+                    antialias: true,  // for smooooooth circles
                 }).then(() => {
                     setApp(pixiApp);
                 });
