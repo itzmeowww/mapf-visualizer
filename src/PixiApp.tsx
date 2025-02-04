@@ -17,6 +17,7 @@ interface PixiAppProps {
     speed: number;
     loopAnimation: boolean;
     showAgentId: boolean;
+    tracePaths: boolean;
 }
 
 function drawGrid(viewport: Viewport, graph: Graph) : PIXI.Container {
@@ -47,9 +48,14 @@ const PixiApp = forwardRef(({
     speed,
     loopAnimation,
     showAgentId,
+    tracePaths,
 }: PixiAppProps, ref) => {
     // this is a mess of state and refs, but how I got everything to work...
     // maybe someday I will clean this up or maybe someone who knows React better than me can help
+    // 
+    // the variables that are used inside the animation callbacks must
+    // be stored in refs because the callbacks are created "once" and
+    // the variables are updated outside of the callbacks
     const [app, setApp] = useState<PIXI.Application | null>(null);
     const [viewport, setViewport] = useState<Viewport | null>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -57,12 +63,14 @@ const PixiApp = forwardRef(({
     const playAnimationRef = useRef(playAnimation);
     const timestepRef = useRef(0.0); 
     const speedRef = useRef(1.0);
-    const loopAnimationRef = useRef(true);
+    const loopAnimationRef = useRef(loopAnimation);
     const hudRef = useRef<PIXI.Container | null>(null);
     const timestepTextRef = useRef<PIXI.Text | null>(null);
-    const showAgentIdRef = useRef(false);
+    const showAgentIdRef = useRef(showAgentId);
     const tickerCallbackRef = useRef<() => void>(() => {});
     const agentsRef = useRef<PIXI.Container | null>(null);
+    const agentPathsRef = useRef<PIXI.Container>(new PIXI.Container()); // same order as agentsRef
+    const tracePathsRef = useRef(tracePaths);
 
     // Scale a position from grid units to pixels
     const scalePosition = (position: number) : number => {
@@ -106,18 +114,18 @@ const PixiApp = forwardRef(({
         );
     }, [viewport, grid]);
 
-    const moveAndRotateSprites = useCallback((sprites: PIXI.Container[], current_time: number) => {
+    const moveAndRotateSprites = useCallback((agents: PIXI.Container[], currentTime: number) => {
         if (solution === null) return
 
-        const currentTimestep = Math.floor(current_time);
-        const interpolationProgress = current_time - currentTimestep;
+        const currentTimestep = Math.floor(currentTime);
+        const interpolationProgress = currentTime - currentTimestep;
         const currentState = solution[currentTimestep];
         const nextState = solution[Math.min(currentTimestep + 1, solution.length - 1)];
 
         // Interpolate between current and next states
-        sprites.forEach((sprite, index) => {
+        agents.forEach((agent, index) => {
             // Show or hide agent ID
-            const idText = sprite.children[1];
+            const idText = agent.children[1];
             if (idText !== undefined) {
                 idText.visible = showAgentIdRef.current;
             }
@@ -126,17 +134,17 @@ const PixiApp = forwardRef(({
             const endPose = nextState[index];
 
             // Interpolate position
-            sprite.x =
+            agent.x =
                 startPose.position.x +
                 (endPose.position.x - startPose.position.x) * interpolationProgress;
-            sprite.y = 
+            agent.y = 
                 startPose.position.y +
                 (endPose.position.y - startPose.position.y) * interpolationProgress;
-            sprite.x = scalePosition(sprite.x);
-            sprite.y = scalePosition(sprite.y);
+            agent.x = scalePosition(agent.x);
+            agent.y = scalePosition(agent.y);
 
             // orientation-aware visualization has two objects for each sprite
-            const circleContainer: PIXI.Container = sprite.children[0];
+            const circleContainer: PIXI.Container = agent.children[0];
             if (circleContainer === undefined || circleContainer.children.length < 2) return;
 
             // Interpolate rotation
@@ -147,6 +155,67 @@ const PixiApp = forwardRef(({
                 startRotation +
                 (endRotation - startRotation) * interpolationProgress;
         }); 
+    }, [solution]);
+
+    const updatePaths = useCallback((agents: PIXI.Container[], currentTime: number) => {
+        if (solution === null) return;
+
+        agentPathsRef.current.visible = tracePathsRef.current;
+
+        const currentTimestep = Math.floor(currentTime);
+        const interpolationProgress = currentTime - currentTimestep;
+
+        
+        agents.forEach((_agent, index) => {
+            const agentLineStyle = { 
+                width: GRID_UNIT_TO_PX / 10, 
+                color: AGENT_COLORS[index % AGENT_COLORS.length], 
+                cap: "round" as const
+            };
+
+            const path = agentPathsRef.current.children[index] as PIXI.Container
+
+            // Remove segments beyond and including the current time 
+            // We have to remove and redraw the last segment because
+            // we can't tell whether it's a complete or an unfinished
+            // partial segment
+            while (path.children.length >= currentTimestep) {
+                if (path.children.length === 0) break;
+                path.removeChildAt(path.children.length - 1);
+            }
+
+            // Full segments
+            while (path.children.length < currentTimestep) {
+                const segIndex = path.children.length;
+                const segment = path.addChild(new PIXI.Graphics());
+                segment.moveTo(
+                    scalePosition(solution[segIndex][index].position.x),
+                    scalePosition(solution[segIndex][index].position.y)
+                );
+                segment.lineTo(
+                    scalePosition(solution[segIndex + 1][index].position.x),
+                    scalePosition(solution[segIndex + 1][index].position.y)
+                );
+                segment.stroke(agentLineStyle);
+            }
+
+            // Partial segment
+            if (interpolationProgress > 0 && currentTimestep < solution.length - 1) {
+                const segment = path.children.length === currentTimestep ? path.addChild(new PIXI.Graphics()) : path.children[currentTimestep] as PIXI.Graphics;
+                segment.moveTo(
+                    scalePosition(solution[currentTimestep][index].position.x),
+                    scalePosition(solution[currentTimestep][index].position.y)
+                );
+                const interpolatedPosition = {
+                    x: solution[currentTimestep][index].position.x +
+                        (solution[currentTimestep + 1][index].position.x - solution[currentTimestep][index].position.x) * interpolationProgress,
+                    y: solution[currentTimestep][index].position.y +
+                        (solution[currentTimestep + 1][index].position.y - solution[currentTimestep][index].position.y) * interpolationProgress,
+                }
+                segment.lineTo(scalePosition(interpolatedPosition.x), scalePosition(interpolatedPosition.y));
+                segment.stroke(agentLineStyle);
+            }
+        });
     }, [solution]);
 
     // Animate the solution
@@ -161,13 +230,21 @@ const PixiApp = forwardRef(({
         // Check if the solution is orientation-aware
         const orientationAware: boolean = solution[0][0].orientation !== Orientation.NONE;
 
-        // Create agents for each entity in the first configuration
+        // Create paths for each agent in the first configuration
+        // Need to do this first so paths are rendered below agents
+        viewport.addChild(agentPathsRef.current);
+        solution[0].forEach(() => {
+            agentPathsRef.current.addChild(new PIXI.Container());
+        });
+
+        // Create agents based on the first configuration
         const agents = viewport.addChild(new PIXI.Container());
         agentsRef.current = agents;
         let agentId = 0;
         solution[0].forEach(() => {
-            const sprite = agents.addChild(new PIXI.Container());
-            const circleContainer = sprite.addChild(new PIXI.Container());
+            // build agent
+            const agent = agents.addChild(new PIXI.Container());
+            const circleContainer = agent.addChild(new PIXI.Container());
             const circle = circleContainer.addChild(new PIXI.Graphics());
             const agentColor = AGENT_COLORS[agentId++ % AGENT_COLORS.length];
             circle
@@ -180,7 +257,7 @@ const PixiApp = forwardRef(({
                     .poly([0, radius, 0, -radius, radius, 0])
                     .fill(BACKGROUND_COLOR);
             }
-            const idText = sprite.addChild(new PIXI.Text({
+            const idText = agent.addChild(new PIXI.Text({
                 text: `${agentId}`,
                 style: {
                     fontFamily: 'Arial',
@@ -209,10 +286,11 @@ const PixiApp = forwardRef(({
             }
 
             moveAndRotateSprites(agents.children as PIXI.Container[], timestepRef.current);
+            updatePaths(agents.children as PIXI.Container[], timestepRef.current);
         }
         app.ticker.add(animate);
         tickerCallbackRef.current = animate;
-    }, [app, viewport, solution, moveAndRotateSprites]);
+    }, [app, viewport, solution, moveAndRotateSprites, updatePaths]);
 
     // Initialize the app and viewport when the canvas is ready
     useEffect(() => {
@@ -300,6 +378,10 @@ const PixiApp = forwardRef(({
     useEffect(() => {
         showAgentIdRef.current = showAgentId;
     }, [showAgentId]);
+
+    useEffect(() => {
+        tracePathsRef.current = tracePaths;
+    }, [tracePaths]);
 
     return <canvas ref={canvasRef} />
 });
