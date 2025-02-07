@@ -30,6 +30,10 @@ interface ConfigBarProps {
   takeScreenshot: () => void;
   showCellId: boolean;
   setShowCellId: (showCellId: boolean) => void;
+  showGoals: boolean;
+  setShowGoals: (showGoals: boolean) => void;
+  showGoalVectors: boolean;
+  setShowGoalVectors: (showGoalVectors: boolean) => void;
 }
 
 function ConfigBar({
@@ -54,6 +58,10 @@ function ConfigBar({
   takeScreenshot,
   showCellId,
   setShowCellId,
+  showGoals,
+  setShowGoals,
+  showGoalVectors,
+  setShowGoalVectors,
 }: ConfigBarProps) {
   const repoName = "JustinShetty/mapf-visualizer";
   const [mapFile, setMapFile] = React.useState<File | null>(null);
@@ -146,7 +154,7 @@ function ConfigBar({
   }
 
   return (
-    <Stack direction="column" spacing={2} sx={{padding: 2}} >
+    <Stack direction="column" spacing={1} sx={{padding: 2}} >
       <Stack direction="column" spacing={1}>
         <Button variant="outlined" onClick={() => handleLoadDemo("2x2")}>Load 2x2 demo</Button>
         <Button variant="outlined" onClick={() => handleLoadDemo("random-32-32-20")}>Load 32x32 demo</Button>
@@ -219,8 +227,12 @@ function ConfigBar({
         takeScreenshot={takeScreenshot}
         showCellId={showCellId}
         setShowCellId={setShowCellId}
+        showGoals={showGoals}
+        setShowGoals={setShowGoals}
+        showGoalVectors={showGoalVectors}
+        setShowGoalVectors={setShowGoalVectors}
       />
-      <Divider />
+    <Divider />
       <a target="_blank" href={`https://github.com/${repoName}`} style={{ color: 'white', width: 'fit-content' }}>
         {repoName}
       </a>
