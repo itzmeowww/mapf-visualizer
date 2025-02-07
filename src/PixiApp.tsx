@@ -18,6 +18,7 @@ interface PixiAppProps {
     loopAnimation: boolean;
     showAgentId: boolean;
     tracePaths: boolean;
+    setCanScreenshot: (canScreenshot: boolean) => void;
 }
 
 function drawGrid(viewport: Viewport, graph: Graph) : PIXI.Container {
@@ -49,6 +50,7 @@ const PixiApp = forwardRef(({
     loopAnimation,
     showAgentId,
     tracePaths,
+    setCanScreenshot,
 }: PixiAppProps, ref) => {
     // this is a mess of state and refs, but how I got everything to work...
     // maybe someday I will clean this up or maybe someone who knows React better than me can help
@@ -87,6 +89,20 @@ const PixiApp = forwardRef(({
         timestepRef.current = 0.0;
     }
 
+    function takeScreenshot() {
+        if (app && viewport && grid) {
+            app.stop();
+            app.renderer.extract.base64(viewport).then((data) => {
+                const link = document.createElement('a');
+                link.download = 'screenshot.png';
+                link.href = data;
+                link.click();
+                link.remove();
+                app.start();
+            });
+        }
+    }
+
     useImperativeHandle(ref, () => ({
         skipBackward: () => {
             timestepRef.current = Math.max(0, timestepRef.current - stepSize());
@@ -102,6 +118,9 @@ const PixiApp = forwardRef(({
         fit: () => {
             fit();
         },
+        takeScreenshot: () => {
+            takeScreenshot();
+        }
     }));
 
     // Fit the viewport to the grid
@@ -370,7 +389,8 @@ const PixiApp = forwardRef(({
     useEffect(() => {
         fit();
         animateSolution();
-    }, [grid, solution, animateSolution, fit]);
+        setCanScreenshot(!!solution);
+    }, [grid, solution, animateSolution, fit, setCanScreenshot]);
 
     // Update the playAnimationRef when the playAnimation changes
     useEffect(() => {

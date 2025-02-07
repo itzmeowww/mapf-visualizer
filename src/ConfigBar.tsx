@@ -26,6 +26,8 @@ interface ConfigBarProps {
   onShowAgentIdChange: (showAgentId: boolean) => void;
   tracePaths: boolean;
   onTracePathsChange: (tracePaths: boolean) => void;
+  canScreenshot: boolean;
+  takeScreenshot: () => void;
 }
 
 function ConfigBar({
@@ -46,6 +48,8 @@ function ConfigBar({
   onShowAgentIdChange,
   tracePaths,
   onTracePathsChange,
+  canScreenshot,
+  takeScreenshot,
 }: ConfigBarProps) {
   const repoName = "JustinShetty/mapf-visualizer";
   const [mapFile, setMapFile] = React.useState<File | null>(null);
@@ -207,6 +211,8 @@ function ConfigBar({
         onShowAgentIdChange={onShowAgentIdChange}
         tracePaths={tracePaths}
         onTracePathsChange={onTracePathsChange}
+        canScreenshot={canScreenshot}
+        takeScreenshot={takeScreenshot}
       />
       <Divider />
       <a target="_blank" href={`https://github.com/${repoName}`} style={{ color: 'white', width: 'fit-content' }}>

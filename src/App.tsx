@@ -13,6 +13,7 @@ function App() {
     skipForward?: () => void; 
     restart?: () => void; 
     fit?: () => void;
+    takeScreenshot?: () => void;
   }>(null);
 
   const [graph, setGraph] = React.useState<Graph | null>(null);
@@ -22,6 +23,7 @@ function App() {
   const [loopAnimation, setLoopAnimation] = React.useState<boolean>(true);
   const [showAgentId, setShowAgentId] = React.useState<boolean>(false);
   const [tracePaths, setTracePaths] = React.useState<boolean>(true);
+  const [canScreenshot, setCanScreenshot] = React.useState<boolean>(true);
 
   const handleSkipBackward = () => {
     if (pixiAppRef.current?.skipBackward) {
@@ -47,6 +49,12 @@ function App() {
     }
   }
 
+  const handleTakeScreenshot = () => {
+    if (pixiAppRef.current?.takeScreenshot) {
+      pixiAppRef.current.takeScreenshot();
+    }
+  }
+
   return (
     <StrictMode>
     <Box sx={{ flexGrow: 1 }}>
@@ -61,6 +69,7 @@ function App() {
             loopAnimation={loopAnimation}
             showAgentId={showAgentId}
             tracePaths={tracePaths}
+            setCanScreenshot={(canScreenshot: boolean) => setCanScreenshot(canScreenshot)}
           />
         </Grid>
         <Grid size={4}>
@@ -82,6 +91,8 @@ function App() {
             onShowAgentIdChange={(showAgentId: boolean) => setShowAgentId(showAgentId)}
             tracePaths={tracePaths}
             onTracePathsChange={(tracePaths: boolean) => setTracePaths(tracePaths)}
+            canScreenshot={canScreenshot}
+            takeScreenshot={handleTakeScreenshot}
           />
         </Grid>
       </Grid>
