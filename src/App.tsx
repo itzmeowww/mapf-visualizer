@@ -30,7 +30,7 @@ function App() {
   const [showCellId, setShowCellId] = React.useState<boolean>(false);
   const [showGoals, setShowGoals] = React.useState<boolean>(true);
   const [showGoalVectors, setShowGoalVectors] = React.useState<boolean>(false);
-  const [drawerOpen, setDrawerOpen] = React.useState<boolean>(false);
+  const [drawerOpen, setDrawerOpen] = React.useState<boolean>(true);
 
   const handleSkipBackward = () => {
     if (pixiAppRef.current?.skipBackward) {
