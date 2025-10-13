@@ -391,9 +391,9 @@ const PixiApp = forwardRef(({
 
                     hudRef.current.addChild(
                         new PIXI.Text({
-                            x: width - width / 100,
-                            y: height / 100,
-                            anchor: new PIXI.Point(1, 0),
+                            x: width / 100,
+                            y: height - height / 100,
+                            anchor: new PIXI.Point(0, 1),
                             text: "Click and drag to pan. Scroll to zoom.",
                             style: textStyle,
                         })
@@ -449,8 +449,8 @@ const PixiApp = forwardRef(({
             if (hudRef.current) {
                 hudRef.current.children[0].x = width / 100;
                 hudRef.current.children[0].y = height / 100;
-                hudRef.current.children[1].x = width - width / 100;
-                hudRef.current.children[1].y = height / 100;
+                hudRef.current.children[1].x = width / 100;
+                hudRef.current.children[1].y = height - height / 100;
             }
             fit();
         }
