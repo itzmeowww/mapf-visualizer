@@ -1,5 +1,8 @@
 import Box from '@mui/material/Box';
-import Grid from '@mui/material/Grid2';
+import Stack from '@mui/material/Stack';
+import Drawer from '@mui/material/Drawer';
+import IconButton from '@mui/material/IconButton';
+import MenuIcon from '@mui/icons-material/Menu';
 import ConfigBar from './ConfigBar';
 import Visualizer from './Visualizer';
 import { Graph } from './Graph';
@@ -27,6 +30,7 @@ function App() {
   const [showCellId, setShowCellId] = React.useState<boolean>(false);
   const [showGoals, setShowGoals] = React.useState<boolean>(true);
   const [showGoalVectors, setShowGoalVectors] = React.useState<boolean>(false);
+  const [drawerOpen, setDrawerOpen] = React.useState<boolean>(true);
 
   const handleSkipBackward = () => {
     if (pixiAppRef.current?.skipBackward) {
@@ -60,54 +64,77 @@ function App() {
 
   return (
     <StrictMode>
-    <Box sx={{ flexGrow: 1 }}>
-      <Grid container spacing={0}>
-        <Grid size="grow">
-          <Visualizer
-            pixiAppRef = {pixiAppRef}
-            graph={graph}
-            solution={solution}
-            playAnimation={playAnimation}
-            stepSize={stepSize}
-            loopAnimation={loopAnimation}
-            showAgentId={showAgentId}
-            tracePaths={tracePaths}
-            setCanScreenshot={setCanScreenshot}
-            showCellId={showCellId}
-            showGoals={showGoals}
-            showGoalVectors={showGoalVectors}
-          />
-        </Grid>
-        <Grid size={4}>
-          <ConfigBar
-            graph={graph}
-            onGraphChange={useCallback((graph: Graph | null) => setGraph(graph), [])}
-            onSolutionChange={useCallback((solution: Solution | null) => setSolution(solution), [])}
-            playAnimation={playAnimation}
-            onPlayAnimationChange={setPlayAnimation}
-            onSkipBackward={handleSkipBackward}
-            onSkipForward={handleSkipForward}
-            onRestart={handleRestart}
-            stepSize={stepSize}
-            onStepSizeChange={setStepSize}
-            loopAnimation={loopAnimation}
-            onLoopAnimationChange={setLoopAnimation}
-            onFitView={handleFitView}
-            showAgentId={showAgentId}
-            onShowAgentIdChange={setShowAgentId}
-            tracePaths={tracePaths}
-            onTracePathsChange={setTracePaths}
-            canScreenshot={canScreenshot}
-            takeScreenshot={handleTakeScreenshot}
-            showCellId={showCellId}
-            setShowCellId={setShowCellId}
-            showGoals={showGoals}
-            setShowGoals={setShowGoals}
-            showGoalVectors={showGoalVectors}
-            setShowGoalVectors={setShowGoalVectors}
-          />
-        </Grid>
-      </Grid>
+    <Box sx={{ flexGrow: 1, position: 'relative' }}>
+      <IconButton
+        onClick={() => setDrawerOpen(true)}
+        sx={{
+          position: 'absolute',
+          top: 16,
+          right: 16,
+          zIndex: 1000,
+          backgroundColor: 'background.paper',
+          '&:hover': {
+            backgroundColor: 'action.hover',
+          },
+        }}
+      >
+        <MenuIcon />
+      </IconButton>
+      <Stack sx={{ height: '100vh' }}>
+        <Visualizer
+          pixiAppRef = {pixiAppRef}
+          graph={graph}
+          solution={solution}
+          playAnimation={playAnimation}
+          stepSize={stepSize}
+          loopAnimation={loopAnimation}
+          showAgentId={showAgentId}
+          tracePaths={tracePaths}
+          setCanScreenshot={setCanScreenshot}
+          showCellId={showCellId}
+          showGoals={showGoals}
+          showGoalVectors={showGoalVectors}
+        />
+      </Stack>
+      <Drawer
+        anchor="right"
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        keepMounted
+        sx={{
+          '& .MuiDrawer-paper': {
+            width: 400,
+          },
+        }}
+      >
+        <ConfigBar
+          graph={graph}
+          onGraphChange={useCallback((graph: Graph | null) => setGraph(graph), [])}
+          onSolutionChange={useCallback((solution: Solution | null) => setSolution(solution), [])}
+          playAnimation={playAnimation}
+          onPlayAnimationChange={setPlayAnimation}
+          onSkipBackward={handleSkipBackward}
+          onSkipForward={handleSkipForward}
+          onRestart={handleRestart}
+          stepSize={stepSize}
+          onStepSizeChange={setStepSize}
+          loopAnimation={loopAnimation}
+          onLoopAnimationChange={setLoopAnimation}
+          onFitView={handleFitView}
+          showAgentId={showAgentId}
+          onShowAgentIdChange={setShowAgentId}
+          tracePaths={tracePaths}
+          onTracePathsChange={setTracePaths}
+          canScreenshot={canScreenshot}
+          takeScreenshot={handleTakeScreenshot}
+          showCellId={showCellId}
+          setShowCellId={setShowCellId}
+          showGoals={showGoals}
+          setShowGoals={setShowGoals}
+          showGoalVectors={showGoalVectors}
+          setShowGoalVectors={setShowGoalVectors}
+        />
+      </Drawer>
     </Box>
     </StrictMode>
   );
