@@ -30,35 +30,35 @@ function App() {
   const [showGoalVectors, setShowGoalVectors] = React.useState<boolean>(false);
   const [drawerOpen, setDrawerOpen] = React.useState<boolean>(true);
 
-  const handlePlayAnimation = (play: boolean) => {
+  const onPlayChange = (play: boolean) => {
     setPlayAnimation(play);
   }
 
-  const handleSkipBackward = () => {
+  const onSkipBackward = () => {
     if (pixiAppRef.current?.skipBackward) {
       pixiAppRef.current.skipBackward();
     }
   }
 
-  const handleSkipForward = () => {
+  const onSkipForward = () => {
     if (pixiAppRef.current?.skipForward) {
       pixiAppRef.current.skipForward();
     }
   }
 
-  const handleRestart = () => {
+  const onRestart = () => {
     if (pixiAppRef.current?.restart) {
       pixiAppRef.current.restart();
     }
   }
 
-  const handleFitView = () => {
+  const onFitView = () => {
     if (pixiAppRef.current?.fit) {
       pixiAppRef.current.fit();
     }
   }
 
-  const handleTakeScreenshot = () => {
+  const onTakeScreenshot = () => {
     if (pixiAppRef.current?.takeScreenshot) {
       pixiAppRef.current.takeScreenshot();
     }
@@ -86,22 +86,22 @@ function App() {
 
       <AnimationControl
         playAnimation={playAnimation}
-        onPlayChange={handlePlayAnimation}
-        onSkipBackward={handleSkipBackward}
-        onSkipForward={handleSkipForward}
+        onPlayChange={onPlayChange}
+        onSkipBackward={onSkipBackward}
+        onSkipForward={onSkipForward}
         onOpenDrawer={() => setDrawerOpen(true)}
-        onRestart={handleRestart}
+        onRestart={onRestart}
         stepSize={stepSize}
         onStepSizeChange={setStepSize}
         loopAnimation={loopAnimation}
         onLoopAnimationChange={setLoopAnimation}
-        onFitView={handleFitView}
+        onFitView={onFitView}
         showAgentId={showAgentId}
         onShowAgentIdChange={setShowAgentId}
         tracePaths={tracePaths}
         onTracePathsChange={setTracePaths}
         canScreenshot={canScreenshot}
-        takeScreenshot={handleTakeScreenshot}
+        takeScreenshot={onTakeScreenshot}
         showCellId={showCellId}
         setShowCellId={setShowCellId}
         showGoals={showGoals}
@@ -126,18 +126,18 @@ function App() {
           graph={graph}
           onGraphChange={useCallback((graph: Graph | null) => setGraph(graph), [])}
           onSolutionChange={useCallback((solution: Solution | null) => setSolution(solution), [])}
-          onRestart={handleRestart}
+          onRestart={onRestart}
           stepSize={stepSize}
           onStepSizeChange={setStepSize}
           loopAnimation={loopAnimation}
           onLoopAnimationChange={setLoopAnimation}
-          onFitView={handleFitView}
+          onFitView={onFitView}
           showAgentId={showAgentId}
           onShowAgentIdChange={setShowAgentId}
           tracePaths={tracePaths}
           onTracePathsChange={setTracePaths}
           canScreenshot={canScreenshot}
-          takeScreenshot={handleTakeScreenshot}
+          takeScreenshot={onTakeScreenshot}
           showCellId={showCellId}
           setShowCellId={setShowCellId}
           showGoals={showGoals}
