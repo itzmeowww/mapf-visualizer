@@ -183,7 +183,7 @@ function AnimationControl({
                 <Box sx={{ width: 48 }} />
 
                 <Stack direction="row" spacing={2} alignItems="center">
-                    <Tooltip title="Previous step (←)">
+                    <Tooltip title="Previous step (🡐)">
                         <IconButton
                             onClick={onSkipBackward}
                             size="small"
