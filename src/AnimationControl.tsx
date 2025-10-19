@@ -30,7 +30,7 @@ const SHOW_GOAL_VECTORS_KEY = 'v';
 
 interface AnimationControlProps {
     playAnimation: boolean;
-    onPlayAnimationChange: (play: boolean) => void;
+    onPlayChange: (play: boolean) => void;
     onSkipBackward: () => void;
     onSkipForward: () => void;
     onOpenDrawer: () => void;
@@ -56,7 +56,7 @@ interface AnimationControlProps {
 
 function AnimationControl({
     playAnimation,
-    onPlayAnimationChange,
+    onPlayChange,
     onSkipBackward,
     onSkipForward,
     onOpenDrawer,
@@ -94,7 +94,7 @@ function AnimationControl({
                     onSkipBackward();
                     break;
                 case PLAY_PAUSE_KEY:
-                    onPlayAnimationChange(!playAnimation);
+                    onPlayChange(!playAnimation);
                     break;
                 case STEP_FORWARD_KEY:
                     onSkipForward();
@@ -144,7 +144,7 @@ function AnimationControl({
         };
     }, [
         playAnimation,
-        onPlayAnimationChange,
+        onPlayChange,
         onSkipBackward,
         onSkipForward,
         onRestart,
@@ -199,7 +199,7 @@ function AnimationControl({
 
                     <Tooltip title={(playAnimation ? "Pause" : "Play") + " (space)"}>
                         <IconButton
-                            onClick={() => onPlayAnimationChange(!playAnimation)}
+                            onClick={() => onPlayChange(!playAnimation)}
                             sx={{
                                 width: 48,
                                 height: 48,
