@@ -30,10 +30,6 @@ function App() {
   const [showGoalVectors, setShowGoalVectors] = React.useState<boolean>(false);
   const [drawerOpen, setDrawerOpen] = React.useState<boolean>(true);
 
-  const onPlayChange = (play: boolean) => {
-    setPlayAnimation(play);
-  }
-
   const onSkipBackward = () => {
     if (pixiAppRef.current?.skipBackward) {
       pixiAppRef.current.skipBackward();
@@ -86,7 +82,7 @@ function App() {
 
       <AnimationControl
         playAnimation={playAnimation}
-        onPlayChange={onPlayChange}
+        onPlayChange={setPlayAnimation}
         onSkipBackward={onSkipBackward}
         onSkipForward={onSkipForward}
         onOpenDrawer={() => setDrawerOpen(true)}
