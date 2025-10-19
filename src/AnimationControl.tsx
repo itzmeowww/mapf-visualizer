@@ -213,7 +213,7 @@ function AnimationControl({
                         </IconButton>
                     </Tooltip>
 
-                    <Tooltip title="Next step (→)">
+                    <Tooltip title="Next step (🡒)">
                         <IconButton
                             onClick={onSkipForward}
                             size="small"
